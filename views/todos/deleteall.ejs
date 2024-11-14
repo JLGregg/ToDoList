@@ -1,0 +1,35 @@
+<%- include("../partials/header.ejs") %>
+
+<!-- Title -->
+<div class="mx-auto p-2 text-center" style="width: 200px; margin-top: 15vh;">
+  <h1>Delete Completed?</h1>
+</div>
+
+<!-- Button to delete all completed -->
+<div class="d-flex flex-md-row justify-content-center mx-auto p-2 gap-4" style="width: 250px;">
+  <form action="/todos/delete-all-completed?_method=DELETE" method="POST" style="margin-top: 20px;">
+    <button type="submit" class="btn btn-danger">Delete Completed</button>
+  </form>
+</div>
+
+<!-- Completed To-Do List for Deletion -->
+<div class="d-flex flex-column align-items-center justify-content-center p-4">
+  <div class="list-group" style="width: 300px;">
+    <ul class="list-unstyled">
+      <% for (let todo of todos) { %>
+        <% if (todo.isCompleted === true) { %>
+          <li class="list-group-item list-group-item-action d-flex gap-3 py-3 bg-light text-muted">
+            <div class="w-100">
+              <h6 class="mb-0"><%= todo.title %></h6>
+            </div>
+          </li>
+        <% } %>  
+      <% } %>
+    </ul>
+  </div>
+  <a href="/todos">Cancel</a>
+</div>
+
+
+
+<%- include("../partials/footer.ejs") %>

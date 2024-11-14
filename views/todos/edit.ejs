@@ -1,0 +1,19 @@
+<%- include("../partials/header.ejs") %>
+
+<div class="d-flex flex-column align-items-center" style="margin-top: 25vh;">
+  <h1 class="text-center mb-4">Edit ToDo</h1>
+  <form class="w-50" action="/todos/<%= todo._id %>?_method=PATCH" method="POST">
+    <div class="mb-3">
+      <input type="text" name="title" class="form-control" id="title" placeholder="New Todo"
+      value="<%= todo.title %>">
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>    
+  </form>
+  <form action="/todos/<%= todo._id %>?_method=DELETE" method="POST">
+    <button class="btn btn-danger">Delete</button>
+  </form>
+  <a href="/todos">Cancel</a>
+</div>
+
+
+<%- include("../partials/footer.ejs") %>
