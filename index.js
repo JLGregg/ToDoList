@@ -1,6 +1,8 @@
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
+const catchAsync = require('./utils/catchAsync');
+const ExpressError = require('./utils/ExpressError');
 const methodOverride = require('method-override');
 
 const app = express();
@@ -8,7 +10,6 @@ const port = 3000;
 
 // Get Todo List
 const ToDoList = require('./models/todoList');
-const TodoList = require('./models/todoList');
 
 mongoose
   .connect("mongodb://localhost:27017/ToDoList")
@@ -58,7 +59,7 @@ app.get('/todos/edit/:id', async(req, res) => {
 // Toggle isCompleted
 app.patch('/todos/complete/:id', async(req, res) => {
   const { id } = req.params;
-  const todo = await TodoList.findById(id);
+  const todo = await ToDoList.findById(id);
   if (todo) {
     todo.isCompleted = !todo.isCompleted;
     await todo.save();
