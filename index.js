@@ -10,6 +10,7 @@ const port = 3000;
 
 // Get Todo List
 const ToDoList = require('./models/todoList');
+const { todoSchema } = require('./schemas');
 
 mongoose
   .connect("mongodb://localhost:27017/ToDoList")
@@ -28,19 +29,29 @@ app.use(express.static("public"));
 app.use(methodOverride('_method'));
 app.use(express.urlencoded({extended:true}))
 
+// Validate ToDo
+const validateTodo = (req, res, next) => {
+  const {error} = todoSchema.validate(req.body);
+  if(error){
+    const msg = error.details.map(el => el.message).join(',');
+    throw new ExpressError(msg, 400);
+  } else {
+    next();
+  }
+};
 
 // Get todos and render index.ejs
-app.get('/todos', async (req, res) => {
+app.get('/todos', catchAsync(async (req, res) => {
   const todos = await ToDoList.find({});
   res.render('todos/index', { todos });
-});
+}));
 
-app.get('/todos/new', async (req, res) => {
+app.get('/todos/new', catchAsync(async (req, res) => {
   res.render("todos/new");
-})
+}));
 
 // Post todo and save title, isCompleted, date to database
-app.post('/todos', async(req, res) => {
+app.post('/todos', catchAsync(async(req, res) => {
   const newTodo = new ToDoList({
     title: req.body.title,
     isCompleted: false,
@@ -48,16 +59,16 @@ app.post('/todos', async(req, res) => {
   });
   await newTodo.save();
   res.redirect('/todos');
-})
+}));
 
-app.get('/todos/edit/:id', async(req, res) => {
+app.get('/todos/edit/:id', catchAsync(async(req, res) => {
   const {id} = req.params;
   const todo = await ToDoList.findById(id);
   res.render("todos/edit", { todo });
-})
+}));
 
 // Toggle isCompleted
-app.patch('/todos/complete/:id', async(req, res) => {
+app.patch('/todos/complete/:id', catchAsync(async(req, res) => {
   const { id } = req.params;
   const todo = await ToDoList.findById(id);
   if (todo) {
@@ -65,17 +76,17 @@ app.patch('/todos/complete/:id', async(req, res) => {
     await todo.save();
   }
   res.redirect('/todos');
-})
+}));
 
 // Update todo
-app.patch('/todos/:id', async(req, res) => {
+app.patch('/todos/:id', catchAsync(async(req, res) => {
   const {id} = req.params;
   const todo = await ToDoList.findByIdAndUpdate(id, req.body, {runValidators: true});
   res.redirect('/todos');
-})
+}));
 
 // Delete all completed.
-app.delete('/todos/delete-all-completed', async (req, res) => {
+app.delete('/todos/delete-all-completed', catchAsync(async(req, res) => {
   try {
     // Delete all todos where `isCompleted` is true
     await ToDoList.deleteMany({ isCompleted: true });
@@ -84,19 +95,30 @@ app.delete('/todos/delete-all-completed', async (req, res) => {
     console.error(error);
     res.status(500).send("An error occurred while deleting completed todos.");
   }
-});
+}));
 
 // Delete single entry
-app.delete('/todos/:id', async(req, res) => {
+app.delete('/todos/:id', catchAsync(async(req, res) => {
   const{ id } = req.params;
   await ToDoList.findByIdAndDelete(id);
   res.redirect('/todos');
-})
+}));
 
-app.get('/todos/delete-all', async (req, res) => {
+app.get('/todos/delete-all', catchAsync(async (req, res) => {
   const todos = await ToDoList.find({});
   res.render("todos/deleteall", { todos });
-})
+}));
+
+// If no routes are hit
+app.all('*', (req, res, next) => {
+  next(new ExpressError('Page Not Found', 404));
+});
+
+app.use((err, req, res, next) => {
+  const {statusCode = 500} = err;
+  if(!err.message) err.message = "Something Went Wrong";
+  res.status(statusCode).render('error', { err });
+});
 
 app.listen(port, ()=>{
   console.log(`Listening on port ${port}`); 
